@@ -1,0 +1,96 @@
+Version Changes
+
+1.0.0 + 1 
+	production တင်ခြင်း
+
+1.0.0 + 2 
+	handleExportExcel.js
+	initialForm-data.js
+	wayPage.jsx
+	customerRoutes.js
+	sidenav.jsx
+	
+1.0.0 + 3
+	customerRoutes.js
+	outletRoutes.js
+	customer.js
+	outlet.js
+	customerListPage.jsx
+	outletListPage.jsx
+	wayPage.jxs
+	local-data.js
+	helperComponents.jsx	
+	sidenav.jsx
+
+	ALTER TABLE fastsafe_delivery.customer DROP INDEX customerPhone_UNIQUE;
+	ALTER TABLE fastsafe_delivery.outlet DROP INDEX outletPhone_UNIQUE;
+
+1.0.0 + 4
+	wayPage.jsx
+	local-data.js
+	initialForm-data.js
+	helperComponents.jsx
+	handleExportExcel.js
+	way.js
+	wayRoutes.js
+
+
+	ALTER TABLE `fastsafe_delivery`.`way` CHANGE COLUMN `wayDate` `wayDate` VARCHAR(255) NOT NULL ;
+	ALTER TABLE `fastsafe_delivery`.`way` ADD COLUMN `marketId` INT NOT NULL AFTER `complaint`;
+
+1.0.0 + 5
+	sidenav.jsx
+	wayPage.jsx
+	helperComponents.jsx
+	handleExportExcel.js
+	outlet.js
+	initialForm-data.js
+	outletRoutes.js
+	outletAPI.js
+	statusDialog.jsx
+	wayAPI.js
+	wayRoutes.js
+
+	ALTER TABLE `fastsafe_delivery`.`outlet` ADD COLUMN `marketId` INT NOT NULL AFTER `outletType`, ADD COLUMN `marketName` VARCHAR(45) NOT NULL AFTER `marketId`;
+
+	
+1.0.0 + 6
+	sidenav.jsx
+	outletListPage.jsx
+	local-data.js
+	authAPI.js
+	customerAPI.js
+	deliAreaAPI.js
+	deliAreaTownShipAPI.js
+	deliveryAPI.js
+	marketAPI.js
+	outletAPI.js
+	routeAPI.js
+	townShipAPI.js
+	userAPI.js
+	wayAPI.js
+	outletListPage.jsx
+
+1.0.0 + 7
+	sidenav.jsx	
+	local-data.js
+	wayPage.jsx
+	assets/wayPage/doneSign.png
+	assets/wayPage/remainWay.png
+
+1.0.0 + 8 (18.5.2026)
+	sidenav.jsx
+	local-data.js
+	wayPage.js
+
+	ALTER TABLE `fastsafe_delivery`.`way` ADD COLUMN `updatedDate` VARCHAR(255) NULL AFTER `marketId`;
+
+1.0.0 + 8 (19.5.2026)
+	wayPage.js		
+	wayRoutes.js
+
+1.0.0 + 9 
+	sidenav.jsx
+	wayPage.jsx
+	wayRoutes.js
+	handleExportExcel.js

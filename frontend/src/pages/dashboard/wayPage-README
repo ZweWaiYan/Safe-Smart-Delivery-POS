@@ -1,0 +1,31 @@
+Way Func Func Structure
+-----------------------
+
+Fetch Data ( fetchFunc )
+
+Verify Order Type ( verifyOrderTypeInputs )
+Verify Way ( verifyWayInputs )
+Verfiy Customer ( verifyCustomerInputs )
+Verfiy Outlet ( verifyOutletInputs )
+
+Handle Order Type ( handleOrderTypeSubmit )
+Handle Way Change ( handleInputChange )
+Handle Order Type Change ( handleOrderTypeChange )
+Handle Outlet Change ( handleOutletInputChange )
+Handle Customer Change ( handleCustomerInputChange )
+
+Way Save / Edit ( handleWaySave )
+Way Delete ( handleWayDelete )
+
+Way Edit set to Input ( handleWayEdit )
+Way Confirm Dialog Delete ( openDeleteConfirmDialog )
+
+Outlet Dialog Save ( handleOutletDialogSave )
+Outlet Dialog Close ( handleOutletDialogClose )
+
+Customer Dialog Save ( handleCustomerDialogSave )
+Customer Dialog Close ( handleCustomerDialogClose )
+
+Order Type Dialog Close ( handleOrderTypeDialogClose )
+
+Reset Form ( handleResetForm )

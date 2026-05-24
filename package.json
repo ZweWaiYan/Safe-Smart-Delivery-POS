@@ -1,0 +1,28 @@
+{
+  "name": "safefastdelivery",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start-all": "concurrently \"npm start --prefix backend\" \"npm run dev --prefix frontend -- --host\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZweWaiYan/Safe-FastDeliProject.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ZweWaiYan/Safe-FastDeliProject/issues"
+  },
+  "homepage": "https://github.com/ZweWaiYan/Safe-FastDeliProject#readme",
+  "dependencies": {
+    "child_process": "^1.0.2",
+    "concurrently": "^9.2.1",
+    "exceljs": "^4.4.0",
+    "file-saver": "^2.0.5",
+    "node-machine-id": "^1.1.12"
+  }
+}
