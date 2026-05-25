@@ -71,7 +71,7 @@ export function Sidenav({ brandImg, brandName, routes }) {
             color="blue-gray"
             className="mb-2 font-normal"
           >
-            Version 1.0.0 + 9
+            Version 1.0.0 + 10
           </Typography>
         </div>
       </div>

@@ -94,3 +94,11 @@ Version Changes
 	wayPage.jsx
 	wayRoutes.js
 	handleExportExcel.js
+
+1.0.0 + 10
+	sidenav.jsx
+	wayPage.jsx
+	initialForm-data.js
+	helperComponents.jsx			
+
+	CREATE TABLE `wayHistory` ( `wayHistoryId` INT NOT NULL AUTO_INCREMENT, `historyData` JSON NOT NULL, PRIMARY KEY (`wayHistoryId`)) 

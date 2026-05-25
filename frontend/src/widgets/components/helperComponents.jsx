@@ -274,6 +274,13 @@ export const renderCell = (key, header, item, className, tableHeaders, townShipL
                             }`}
                     >
                         <div className={`flex ${tableHeaders !== mainHeaders ? "flex-col" : "flex-row"} gap-2`}>
+                            {
+                                tableHeaders === mainHeaders && (
+                                    <IconButton color="orange" onClick={() => handleWayEdit(wayId)}>
+                                        <i className="fas fa-route" />
+                                    </IconButton>
+                                )
+                            }
                             {canEdit && (
                                 <IconButton color="green" onClick={() => handleWayEdit(wayId)}>
                                     <i className="fas fa-edit" />

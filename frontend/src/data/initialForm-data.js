@@ -23,7 +23,7 @@ export const initialMarketFormData = {
 };
 
 export const initialFilterFormDate = {
-   customer: "", outletName: "", startDate: "" , endDate: "", status: 0, townShip: 0, senderDeliCar: 0, sortBy: "", city: 0, wayType: 3, market: 0, packageFee : ""
+   customer: "", outletName: "", startDate: "" , endDate: "", status: 0, townShip: 0, senderDeliCar: 0, sortBy: "", city: 0, wayType: 3, market: 0, packageFee : "", startOfficeDate: "", endOfficeDate: "",
 };
 
     export const exportColumns = [

@@ -565,10 +565,17 @@ export function WayPage() {
 
     // handle filter
     const handleFilter = () => {
-        const { customer, outletName, startDate, endDate, status, townShip, senderDeliCar, sortBy, city, wayType, market, packageFee } = filterFormData;
+        const { customer, outletName, startDate, endDate, status, townShip, senderDeliCar, sortBy, city, wayType, market, packageFee, startOfficeDate, endOfficeDate } = filterFormData;
 
         if (filterFormData.startDate && filterFormData.endDate) {
             if (new Date(filterFormData.startDate) > new Date(filterFormData.endDate)) {
+                alert("Start date cannot be later than End date!");
+                return;
+            }
+        }
+
+        if (filterFormData.startOfficeDate && filterFormData.endOfficeDate) {
+            if (new Date(filterFormData.startOfficeDate) > new Date(filterFormData.endOfficeDate)) {
                 alert("Start date cannot be later than End date!");
                 return;
             }
@@ -598,6 +605,23 @@ export function WayPage() {
 
             }
 
+            let matchOfficeDate = true;
+            if (startOfficeDate || endOfficeDate) {
+                const targetOfficeDataStr = item.wayDate || "";
+
+                const cleanOfficeItemDate = targetOfficeDataStr ? targetOfficeDataStr.replace(' ', 'T').substring(0, 16) : "";
+
+
+
+                if (startOfficeDate && endOfficeDate) {
+                    matchOfficeDate = cleanOfficeItemDate >= startOfficeDate && cleanOfficeItemDate <= endOfficeDate;
+                } else if (startOfficeDate) {
+                    matchOfficeDate = cleanOfficeItemDate >= startOfficeDate;
+                } else if (endOfficeDate) {
+                    matchOfficeDate = cleanOfficeItemDate <= endOfficeDate;
+                }
+            }
+
             let matchName = true;
             // Customer            
             if (filterBy === "0") {
@@ -624,7 +648,7 @@ export function WayPage() {
             // Package Fee
             const mactchPackageFee = packageFee === "" || Number(packageFee) === 0 || item.itemPrice === Number(packageFee);
 
-            return matchName && matchShop && matchDate && matchStatus && matchTownship && matchSenderDeliCar && matchCity && matchWayType && matchMarket && mactchPackageFee;
+            return matchName && matchShop && matchDate && matchStatus && matchTownship && matchSenderDeliCar && matchCity && matchWayType && matchMarket && mactchPackageFee && matchOfficeDate;
         });
 
         // Sorting
@@ -1123,10 +1147,46 @@ export function WayPage() {
                                                                         displayValue = `${datePart}, ${timePart}`;
                                                                     }
 
+                                                                    else if (key === "startOfficeDate") {
+
+                                                                        const dateObj = new Date(value);
+
+                                                                        const year = dateObj.getFullYear();
+                                                                        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                                                                        const day = String(dateObj.getDate()).padStart(2, '0');
+                                                                        const datePart = `${year}-${month}-${day}`;
+
+                                                                        const timePart = dateObj.toLocaleTimeString('en-US', {
+                                                                            hour: 'numeric',
+                                                                            minute: '2-digit',
+                                                                            hour12: true
+                                                                        });
+
+                                                                        displayValue = `${datePart}, ${timePart}`;
+                                                                    }
+
+                                                                    else if (key === "endOfficeDate") {
+
+                                                                        const dateObj = new Date(value);
+
+                                                                        const year = dateObj.getFullYear();
+                                                                        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                                                                        const day = String(dateObj.getDate()).padStart(2, '0');
+                                                                        const datePart = `${year}-${month}-${day}`;
+
+                                                                        const timePart = dateObj.toLocaleTimeString('en-US', {
+                                                                            hour: 'numeric',
+                                                                            minute: '2-digit',
+                                                                            hour12: true
+                                                                        });
+
+                                                                        displayValue = `${datePart}, ${timePart}`;
+                                                                    }
+
                                                                     return (
                                                                         <div
                                                                             key={key}
-                                                                            className="bg-blue-100 text-blue-800 px-2 py-1 rounded truncate text-center shadow-sm"
+                                                                            className="bg-blue-100 text-blue-800 px-2 py-1 rounded truncate text-center shadow-sm min-w-max"
                                                                             title={`${key} : ${displayValue}`}
                                                                         >
                                                                             <span className="font-bold text-[10px] uppercase block text-blue-500">
@@ -1774,17 +1834,28 @@ export function WayPage() {
                             <div className="relative w-full">
                                 <ReactSelect
                                     ref={townShipInputRef}
-                                    options={townShipList.flatMap(ts =>
-                                        deliAreaList
-                                            .filter(car => car.townShipNames.includes(ts.townShipName))
-                                            .map(car => ({
-                                                value: {
-                                                    townShipId: ts.townShipId,
-                                                    senderDeliCar: car.deliAreaId
-                                                },
-                                                label: `${car.deliCarNo} - ${ts.townShipName} `
-                                            }))
-                                    )}
+                                    options={
+                                        townShipList.flatMap(ts =>
+                                            deliAreaList
+                                                .filter(car => car.townShipNames.includes(ts.townShipName))
+                                                .map(car => ({
+                                                    value: {
+                                                        townShipId: ts.townShipId,
+                                                        senderDeliCar: car.deliAreaId
+                                                    },
+                                                    label: `${car.deliCarNo} - ${ts.townShipName}`,
+                                                    townShipName: ts.townShipName
+                                                }))
+                                        )
+                                            // 🎯 နာမည်တူရာ (လှိုင်၊ ကမာရွတ် စသဖြင့်) ဒေသအလိုက် ဆက်တိုက်ဖြစ်အောင် စီပေးမယ့် Logic
+                                            .sort((a, b) => {
+                                                if (a.townShipName === 'All') return -1; // 'All' ပါရင် ထိပ်ဆုံးမှာ ထားမယ်
+                                                if (b.townShipName === 'All') return 1;
+
+                                                // မြန်မာစာလုံးအက္ခရာအလိုက် "လှိုင်" တွေအကုန် တစ်စုတည်းဖြစ်အောင် စီလိုက်တာပါ
+                                                return a.townShipName.localeCompare(b.townShipName, 'my');
+                                            })
+                                    }
                                     value={
                                         townShipList.flatMap(ts =>
                                             deliAreaList
@@ -2491,34 +2562,82 @@ export function WayPage() {
                             onChange={handleFilterInputChange}
                         />
                     </div> */}
-                    <div className="grid grid-cols-2 gap-2 w-full">
-                        {/* Start DateTime */}
-                        <div className="w-full">
-                            <Input
-                                type="datetime-local"
-                                label="Select Start Date"
-                                name="startDate"
-                                value={filterFormData.startDate}
-                                onChange={handleFilterInputChange}
-                                containerProps={{
-                                    className: "!min-w-0",
-                                }}
 
-                            />
+
+
+                    <div className="flex flex-col gap-1 w-full">
+
+                        <label className="text-base font-extrabold text-blue-gray-600 ml-1 pb-1 mb-3 border-b-2 border-cyan-700 w-max">
+                            For Delivery
+                        </label>
+
+
+                        <div className="grid grid-cols-2 gap-4 w-full ">
+                            {/* Start DateTime */}
+                            <div className="w-full">
+                                <Input
+                                    type="datetime-local"
+                                    label="Select Start Date"
+                                    name="startDate"
+                                    value={filterFormData.startDate}
+                                    onChange={handleFilterInputChange}
+                                    containerProps={{
+                                        className: "!min-w-0",
+                                    }}
+
+                                />
+                            </div>
+
+                            {/* End DateTime */}
+                            <div className="w-full">
+                                <Input
+                                    type="datetime-local"
+                                    label="Select End Date"
+                                    name="endDate"
+                                    value={filterFormData.endDate}
+                                    onChange={handleFilterInputChange}
+                                    containerProps={{
+                                        className: "!min-w-0",
+                                    }}
+                                />
+                            </div>
                         </div>
+                    </div>
+                    <div className="flex flex-col gap-1 w-full">
 
-                        {/* End DateTime */}
-                        <div className="w-full">
-                            <Input
-                                type="datetime-local"
-                                label="Select End Date"
-                                name="endDate"
-                                value={filterFormData.endDate}
-                                onChange={handleFilterInputChange}
-                                containerProps={{
-                                    className: "!min-w-0",
-                                }}
-                            />
+                        <label className="text-base font-extrabold text-blue-gray-600 ml-1 pb-1 mb-3 border-b-2 border-deep-orange-700 w-max">
+                            For Office
+                        </label>
+
+                        <div className="grid grid-cols-2 gap-2 w-full">
+                            {/* Start DateTime */}
+                            <div className="w-full">
+                                <Input
+                                    type="datetime-local"
+                                    label="Select Start Date"
+                                    name="startOfficeDate"
+                                    value={filterFormData.startOfficeDate}
+                                    onChange={handleFilterInputChange}
+                                    containerProps={{
+                                        className: "!min-w-0",
+                                    }}
+
+                                />
+                            </div>
+
+                            {/* End DateTime */}
+                            <div className="w-full">
+                                <Input
+                                    type="datetime-local"
+                                    label="Select End Date"
+                                    name="endOfficeDate"
+                                    value={filterFormData.endOfficeDate}
+                                    onChange={handleFilterInputChange}
+                                    containerProps={{
+                                        className: "!min-w-0",
+                                    }}
+                                />
+                            </div>
                         </div>
                     </div>
                     <Select
