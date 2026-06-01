@@ -1,6 +1,6 @@
 import { onlineBaseURL } from '../data/local-data';
   
-  const BASE_URL = `${onlineBaseURL}/way`;
+  const BASE_URL = `${onlineBaseURL}/wayHistory`;
 
 const getToken = () => localStorage.getItem("token");
 
@@ -31,20 +31,25 @@ return (method !== "GET") ? { status: res.status, ...resData } :  resData ;
 
 };
 
-export const fetchWay = async () => request(BASE_URL, "GET");
+//Create
+export const createWayHistory = async (requestBody) => {  
+  return request(BASE_URL, 'POST', requestBody);
+};
 
+//Update
+export const updateWayHistory = async (wayId, newStatusObj) => {      
+  return request(`${BASE_URL}/${wayId}`, "PUT", newStatusObj);
+};
 
-export const createWay = (data) => request (BASE_URL,'POST', data);
+export const bulkUpdateWayHistory = async (wayIds, currentTimestamp) => 
+    request(`${BASE_URL}`, "PATCH", { wayIds, currentTimestamp });
 
-export const updateWay = (id , data) => request(`${BASE_URL}/${id}`,'PUT', data);  
+//Read
+export const getWayHistory = async (wayId) => {
+  return request(`${BASE_URL}/${wayId}`, "GET");
+};
 
-export const updateStatusOnly = async (wayId, data) =>
-  request(`${BASE_URL}/${wayId}`, "PATCH", data);
-
-export const updateAllStatusToday = async (wayIds, formattedStartDate) => 
-  request(`${BASE_URL}/update-all-status-today`, "PATCH", { wayIds, formattedStartDate });
-
-export const deleteWay = async (id) => request(`${BASE_URL}/${id}`,'DELETE');
-
-// Fetch counts of all statuses
-export const wayCountsAll = async () => request(`${BASE_URL}/count-all`, "GET");
+//Delete
+export const deleteWayHistory = async (wayId) => {
+  return request(`${BASE_URL}/${wayId}`, "DELETE");
+};

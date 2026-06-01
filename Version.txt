@@ -95,10 +95,12 @@ Version Changes
 	wayRoutes.js
 	handleExportExcel.js
 
-1.0.0 + 10
+1.0.0 + 10 ( 1st Git )
 	sidenav.jsx
 	wayPage.jsx
 	initialForm-data.js
 	helperComponents.jsx			
 
 	CREATE TABLE `wayHistory` ( `wayHistoryId` INT NOT NULL AUTO_INCREMENT, `historyData` JSON NOT NULL, PRIMARY KEY (`wayHistoryId`)) 
+	ALTER TABLE `fastsafe_delivery`.`wayhistory` ADD COLUMN `wayId` INT NOT NULL AFTER `wayHistoryId`;
+	ALTER TABLE `fastsafe_delivery`.`customer` CHANGE COLUMN `customerPhone` `customerPhone` VARCHAR(45) NOT NULL ;

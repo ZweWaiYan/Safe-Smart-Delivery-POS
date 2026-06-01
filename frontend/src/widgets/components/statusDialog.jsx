@@ -21,8 +21,7 @@ export const StatusDialog = ({ open, onClose, onSubmit, status, wayId, complaint
   const complaintInputRef = useRef(null);
 
   useEffect(() => {
-
-    console.log("wayDateItem", wayDateItem);
+    
     if (open) {
       setSelectedType(status !== undefined ? Number(status) : 0);
       setWayDate(wayDateItem || "");

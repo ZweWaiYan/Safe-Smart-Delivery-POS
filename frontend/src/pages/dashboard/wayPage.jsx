@@ -12,6 +12,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useState, useRef } from "react";
 
 import { fetchWay, createWay, updateWay, deleteWay, updateStatusOnly, updateAllStatusToday } from "@/api/wayAPI";
+import { createWayHistory, updateWayHistory, getWayHistory, deleteWayHistory, bulkUpdateWayHistory } from "@/api/wayHistoryAPI";
 import { fetchOutlet, createOutlet } from "@/api/outletAPI";
 import { fetchCustomers, createCustomer } from "@/api/customerAPI";
 import { fetchMarket } from "@/api/marketAPI";
@@ -85,6 +86,13 @@ export function WayPage() {
 
     const [matchingCars, setMatchingCars] = useState([]);
     const [navStatus, setNavStatus] = useState(0);
+
+    const [historyList, setHistoryList] = useState([]);
+    const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+    const [historyLoading, setHistoryLoading] = useState(false);
+
+    const [deliveryDialog, setDeliveryDialog] = useState(false);
+    const [localStartDate, setLocalStartDate] = useState("");
 
     const [orderTypeErrors, setOrderTypeErrors] = useState({ marketName: "", outletName: "", pickupDeliCar: "" });
     const [wayErrors, setWayErrors] = useState({ outletId: "", customerId: "", itemPrice: "", deliFee: "", itemQty: "", city: "", townShipId: "", wayDate: "" });
@@ -492,6 +500,23 @@ export function WayPage() {
                 response = await createWay(formData);
 
                 if (response.status === 201) {
+
+                    const initialHistory = [
+                        {
+                            status: formData.status,
+                            changed_at: formData.status === 1 ? formData.wayDate : formData.updateWay,
+                            complaint: formData.complaint || ""
+                        }
+                    ];
+
+
+                    const requestBody = {
+                        wayId: response.data['wayId'],
+                        historyData: initialHistory
+                    };
+
+                    await createWayHistory(requestBody);
+
                     setFilteredList((prev) => [response.data, ...prev]);
                     handleResetForm("0");
                     setEditDialog(false);
@@ -510,6 +535,7 @@ export function WayPage() {
     const handleWayDelete = async () => {
         try {
             const response = await deleteWay(deleteId);
+            const responseHistory = await deleteWayHistory(deleteId);
             setFilteredList((prev) => prev.filter((c) => c.wayId !== deleteId));
             setDeleteId(null);
             setConfirmDeleteDialog(false);
@@ -646,9 +672,9 @@ export function WayPage() {
             // Market
             const matchMarket = Number(market) === 0 || item.marketId === Number(market);
             // Package Fee
-            const mactchPackageFee = packageFee === "" || Number(packageFee) === 0 || item.itemPrice === Number(packageFee);
+            const matchPackageFee = packageFee === "" || Number(packageFee) === 0 || item.itemPrice === Number(packageFee);
 
-            return matchName && matchShop && matchDate && matchStatus && matchTownship && matchSenderDeliCar && matchCity && matchWayType && matchMarket && mactchPackageFee && matchOfficeDate;
+            return matchName && matchShop && matchDate && matchStatus && matchTownship && matchSenderDeliCar && matchCity && matchWayType && matchMarket && matchPackageFee && matchOfficeDate;
         });
 
         // Sorting
@@ -671,6 +697,8 @@ export function WayPage() {
                 return valA.localeCompare(valB, 'mm');
             });
         }
+
+
 
         setFilteredList([...filtered]);
         setFilterDialog(false);
@@ -769,6 +797,7 @@ export function WayPage() {
 
     // handle status 
     const handleStatusSubmit = async ({ wayId, status, complaint, wayDate }) => {
+
         try {
             const currentStatus = Number(status);
             const body = { status: currentStatus };
@@ -812,6 +841,40 @@ export function WayPage() {
                 // fetchFunc(fetchWay, setFilteredList, "Way");
                 // fetchFunc(fetchWay, setWayList, "Way");
 
+                const res = await getWayHistory(wayId);
+
+                const now = new Date();
+
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+
+                const initialHistory = {
+                    status: status,
+                    changed_at: status === 1 ? `${year}-${month}-${day} ${hours}:${minutes}:${seconds}` : wayDate || "",
+                    complaint: status === 3 ? complaint || "" : ""
+                }
+
+                let updatedHistoryArray = [];
+
+                if (res && res.success && Array.isArray(res.data)) {
+                    // Backend က success: true နဲ့ data format အတိုင်း လာရင်
+                    updatedHistoryArray = [...res.data, initialHistory];
+                } else if (res && Array.isArray(res)) {
+                    // တိုက်ရိုက် Array အနေနဲ့ လာရင်
+                    updatedHistoryArray = [...res, initialHistory];
+                } else {
+                    // လုံးဝ ဒေတာမရှိသေးရင် Array အလွတ်ထဲ အသစ်ထည့်မယ်
+                    updatedHistoryArray = [initialHistory];
+                }
+
+                await updateWayHistory(wayId, updatedHistoryArray);
+
+
                 // Update local UI
                 setFilteredList(prev =>
                     prev.map(item =>
@@ -833,59 +896,76 @@ export function WayPage() {
         }
     };
 
+    //Handle Way History Dialog
+    const handleOpenHistory = async (id) => {
+
+        if (!id) return;
+
+        setHistoryLoading(true);
+        setHistoryDialogOpen(true);
+
+        setTimeout(async () => {
+            try {
+                const res = await getWayHistory(id);
+
+                if (res) {
+                    setHistoryList(res.data || res);
+                } else {
+                    setHistoryList([]);
+                }
+            } catch (error) {
+                console.error("Error fetching history:", error);
+                setHistoryList([]);
+            } finally {
+                setHistoryLoading(false);
+            }
+        }, 50);
+    };
+
+
     const handleTodayAllStatusDelivery = async () => {
 
-        if (filterFormData.startDate != "" && filterFormData.endDate != "") {
-            const wayIdList = filteredList.map(item => item.wayId);
+        const formattedStartDate = localStartDate ? localStartDate.replace("T", " ") + ":00" : null;
+        const wayIdList = filteredList.map(item => item.wayId);
 
-            try {
-                const result = await updateAllStatusToday(wayIdList);
+        console.log("wayIdList", wayIdList);
 
-                if (result.status === 200) {
+        try {
+            const result = await updateAllStatusToday(wayIdList, formattedStartDate);
 
-                    const now = new Date();
-                    const year = now.getFullYear();
-                    const month = String(now.getMonth() + 1).padStart(2, '0');
-                    const date = String(now.getDate()).padStart(2, '0');
-                    const hours = String(now.getHours()).padStart(2, '0');
-                    const minutes = String(now.getMinutes()).padStart(2, '0');
-                    const seconds = String(now.getSeconds()).padStart(2, '0');
-                    const currentTimestamp = `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+            if (result.status === 200) {
 
-                    setWayList(prevList =>
-                        prevList.map(item => {
-                            if (wayIdList.includes(item.wayId)) {
-                                return { ...item, status: 5, updatedDate: currentTimestamp };
-                            }
-                            return item;
-                        })
-                    );
+                setWayList(prevList =>
+                    prevList.map(item => {
+                        if (wayIdList.includes(item.wayId)) {
+                            return { ...item, status: 5, updatedDate: formattedStartDate };
+                        }
+                        return item;
+                    })
+                );
 
-                    setFilteredList(prevList =>
-                        prevList.map(item => {
-                            if (wayIdList.includes(item.wayId)) {
-                                return { ...item, status: 5, updatedDate: currentTimestamp };
-                            }
-                            return item;
-                        })
-                    );
+                setFilteredList(prevList =>
+                    prevList.map(item => {
+                        if (wayIdList.includes(item.wayId)) {
+                            return { ...item, status: 5, updatedDate: formattedStartDate };
+                        }
+                        return item;
+                    })
+                );
+
+                // 💡 ၂။ ID အနည်းဆုံး တစ်ခုပါမှ API လှမ်းခေါ်ပါမည်
+                await bulkUpdateWayHistory(wayIdList, formattedStartDate);
 
 
-                    toast.success("Status updated successfully!");
-
-                    // fetchFunc(fetchWay, setFilteredList, "Way");
-                    // fetchFunc(fetchWay, setWayList, "Way");
-                } else {
-                    toast.error("Failed to update status. Please try again.");
-                }
-
-                setStatusDialog(false); // close dialog
-            } catch (err) {
-                console.error("Failed to update status:", err);
-                alert("Status update failed!");
+                toast.success("Status updated successfully!");
+            } else {
+                toast.error("Failed to update status. Please try again.");
             }
-        } else {
-            alert("Please select start and end date.");
+
+            setStatusDialog(false); // close dialog
+        } catch (err) {
+            console.error("Failed to update status:", err);
+            alert("Status update failed!");
         }
     }
 
@@ -1042,7 +1122,7 @@ export function WayPage() {
                                                             className="whitespace-nowrap"
                                                             onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#16a34a"}
                                                             onMouseOut={(e) => e.currentTarget.style.backgroundColor = "green"}
-                                                            onClick={handleTodayAllStatusDelivery}
+                                                            onClick={() => setDeliveryDialog(true)}
                                                         >
                                                             Make All Deliveried
                                                         </Button>
@@ -1409,7 +1489,8 @@ export function WayPage() {
                                                     StatusDialogOpen,
                                                     handleCalculateTotal,
                                                     canEdit,
-                                                    canDelete
+                                                    canDelete,
+                                                    handleOpenHistory
                                                 )
                                             )}
                                         </tr>
@@ -1545,8 +1626,14 @@ export function WayPage() {
                                                 customerName: inputValue,
                                             }));
                                             setCustomerDialog(true);
+
+                                            setTimeout(() => {
+                                                if (customerPhoneRef && customerPhoneRef.current) {
+                                                    customerPhoneRef.current.focus();
+                                                }
+                                            }, 150);
                                         }}
-                                        ref={customerInputRef}
+                                        ref={formData.wayType === 0 ? customerInputRef : itemPriceInputRef}
                                         isClearable
                                         placeholder="Customer Name"
                                         className="w-full text-sm font-semibold text-blue-gray-600 pb-1"
@@ -1588,7 +1675,7 @@ export function WayPage() {
                                     <div className="relative w-full">
                                         <CreatableSelect
                                             options={outletList
-                                                .filter((item) => item.outletType === formData.wayType)
+                                                .filter((item) => item.outletType === formData.wayType && item.marketId === formData.marketId)
                                                 .map((item) => ({
                                                     value: item.outletId,
                                                     label: `${item.outletName} - ${item.outletPhone} `,
@@ -1625,6 +1712,12 @@ export function WayPage() {
                                                     outletType: 0,
                                                 }));
                                                 setOutletDialog(true);
+
+                                                setTimeout(() => {
+                                                    if (outletPhoneRef && outletPhoneRef.current) {
+                                                        outletPhoneRef.current.focus();
+                                                    }
+                                                }, 150);
                                             }}
                                             ref={outletInputRef}
                                             isClearable
@@ -2799,6 +2892,66 @@ export function WayPage() {
                 </DialogFooter>
             </Dialog>
 
+            <Dialog open={historyDialogOpen} handler={() => setHistoryDialogOpen(false)} size="lg">
+                <DialogHeader className="text-blue-gray-900 font-bold">Way History</DialogHeader>
+                <DialogBody className="overflow-y-auto max-h-[70vh] p-4">
+
+                    {historyLoading ? (
+                        <div className="flex justify-center items-center py-5">
+                            <Typography className="text-sm font-medium text-gray-600">Loading Way...</Typography>
+                        </div>
+                    ) : historyList.length === 0 ? (
+                        <Typography className="text-center py-5 text-gray-500">No history found</Typography>
+                    ) : (
+                        <div className="table-responsive bg-white rounded-lg border border-gray-200 shadow-sm">
+                            <table className="w-full min-w-max table-auto text-left">
+                                <thead className="bg-gray-50 text-gray-700 uppercase text-xs border-b border-gray-200">
+                                    <tr>
+                                        <th className="p-3 text-center">#</th>
+                                        <th className="p-3">Status</th>
+                                        <th className="p-3">Changed At</th>
+                                        <th className="p-3">Complaint</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="text-sm divide-y divide-gray-100">
+                                    {historyList.map((item, index) => (
+                                        <tr key={index} className="hover:bg-gray-50">
+                                            <td className="p-3 text-center font-medium">{index + 1}</td>
+                                            <td className="p-3">
+                                                {/* 🎯 Status အရောင်ခွဲပြမည့် အပိုင်း */}
+                                                {(() => {
+                                                    switch (Number(item.status)) {
+                                                        case 1: return <Chip variant="gradient" color="blue" value="PickUp" className="py-0.5 px-2 text-[11px] inline-block  text-white" />;
+                                                        case 2: return <Chip variant="gradient" color="pink" value="Date Changed" className="py-0.5 px-2 text-[11px] inline-block  text-white" />;
+                                                        case 3: return <Chip variant="gradient" color="amber" value="Pending" className="py-0.5 px-2 text-[11px] inline-block text-white" />;
+                                                        case 4: return <Chip variant="gradient" color="red" value="Return" className="py-0.5 px-2 text-[11px] inline-block  text-white" />;
+                                                        case 5: return <Chip variant="gradient" color="green" value="Delivered" className="py-0.5 px-2 text-[11px] inline-block  text-white" />;
+                                                        default: return <Chip variant="gradient" color="blue-gray" value="Unknown" className="py-0.5 px-2 text-[11px] inline-block  text-white" />;
+                                                    }
+                                                })()}
+                                            </td>
+                                            <td className="p-3 text-gray-600 font-bold">{item.changed_at}</td>
+                                            <td className="p-3">
+                                                {item.complaint ? (
+                                                    <Typography className="text-sm font-bold text-red-500">{item.complaint}</Typography>
+                                                ) : (
+                                                    <span className="text-gray-400">-</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </DialogBody>
+                <DialogFooter>
+                    <Button variant="text" color="red" onClick={() => setHistoryDialogOpen(false)} className="mr-1">
+                        <span>ပိတ်မည်</span>
+                    </Button>
+                </DialogFooter>
+            </Dialog>
+
             {/* Main Way Edit Dialog */}
             <Dialog open={editDialog} onClose={() => setEditDialog(false)} size="xs" className="!max-w-[90%] sm:!max-w-sm">
                 <DialogHeader className="text-red-500">
@@ -3278,6 +3431,61 @@ export function WayPage() {
                             Cancel
                         </Button>
                     </div>
+                </DialogFooter>
+            </Dialog>
+
+            <Dialog
+                open={deliveryDialog}
+                handler={() => setDeliveryDialog(false)}
+                size="xs"
+                className="!max-w-[90%] sm:!max-w-md"
+            >
+                <DialogHeader className="text-xl font-bold text-gray-800">
+                    Select Date Range
+                </DialogHeader>
+
+                <DialogBody className="flex flex-row gap-4 items-center overflow-visible py-6">
+                    {/* === Start Date Input === */}
+                    <div className="flex flex-col gap-1 flex-1 min-w-0">
+                        <label className="text-xs font-bold text-blue-gray-500 ml-1 mb-1">Start Date</label>
+                        <Input
+                            type="datetime-local"
+                            label="Select Start Date"
+                            name="localStartDate"
+                            value={localStartDate}
+                            onChange={(e) => setLocalStartDate(e.target.value)}
+                            // 💡 shrink attribute ကို true ပေးလိုက်ခြင်းဖြင့် Label ကို အပေါ်သို့ တွန်းတင်ပေးပြီး ထပ်မနေတော့ပါဘူး
+                            shrink={true}
+                            containerProps={{
+                                className: "!min-w-0",
+                            }}
+                            className="w-full text-sm font-semibold"
+                        />
+                    </div>
+                </DialogBody>
+
+                <DialogFooter className="gap-2">
+                    {/* Cancel Button */}
+                    <Button
+                        color="red"
+                        variant="text"
+                        onClick={() => setDeliveryDialog(false)}
+                    >
+                        Cancel
+                    </Button>
+
+                    {/* Submit Button */}
+                    <Button
+                        color="green"
+                        onClick={() => {
+                            setDeliveryDialog(false);
+                            handleTodayAllStatusDelivery();
+
+                            setLocalStartDate("");
+                        }}
+                    >
+                        Submit
+                    </Button>
                 </DialogFooter>
             </Dialog>
 

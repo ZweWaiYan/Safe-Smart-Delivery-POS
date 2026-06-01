@@ -2,7 +2,7 @@ import { Typography, Chip, IconButton, Tooltip } from "@material-tailwind/react"
 import { mainHeaders, statusList, wayTypeList, mmRegions } from "../../data/local-data";
 
 
-export const renderCell = (key, header, item, className, tableHeaders, townShipList, isMainWayTable, setStatusDialog, handleWayEdit, openDeleteConfirmDialog, StatusDialogOpen, handleCalculateTotal, canEdit, canDelete) => {
+export const renderCell = (key, header, item, className, tableHeaders, townShipList, isMainWayTable, setStatusDialog, handleWayEdit, openDeleteConfirmDialog, StatusDialogOpen, handleCalculateTotal, canEdit, canDelete, handleOpenHistory) => {
     const {
         wayId, itemPrice, deliFee, status, itemQty, wayType, pickupDeliCarNo,
         senderDeliCarNo, wayDate, remark, complaint, marketName, townShipId, city, townshipName, updatedDate,
@@ -112,8 +112,7 @@ export const renderCell = (key, header, item, className, tableHeaders, townShipL
 
 
           case "status": {
-
-            console.log("status upddatedDate", updatedDate);
+            
 
             const currentLabel = statusList.find((s) => s.value === status)?.label;
 
@@ -148,7 +147,7 @@ export const renderCell = (key, header, item, className, tableHeaders, townShipL
                         }[currentLabel] || "blue-gray"}
                         value={currentLabel}
                         className="py-0.5 px-0.5 mx-2 h-7 text-[12px] font-bold text-center text-white cursor-pointer"
-                        onClick={() => StatusDialogOpen(status, wayId, complaint, updatedDate)}
+                        onClick={() => StatusDialogOpen(status, wayId, complaint, updatedDate , wayDate)}
                     />
 
 
@@ -276,7 +275,7 @@ export const renderCell = (key, header, item, className, tableHeaders, townShipL
                         <div className={`flex ${tableHeaders !== mainHeaders ? "flex-col" : "flex-row"} gap-2`}>
                             {
                                 tableHeaders === mainHeaders && (
-                                    <IconButton color="orange" onClick={() => handleWayEdit(wayId)}>
+                                    <IconButton color="orange" onClick={() => handleOpenHistory(wayId)}>
                                         <i className="fas fa-route" />
                                     </IconButton>
                                 )

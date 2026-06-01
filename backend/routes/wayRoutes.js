@@ -223,17 +223,14 @@ router.put("/:id", verifyToken, async (req, res) => {
 // Update Today All Status is delivery
 router.patch("/update-all-status-today", verifyToken, async (req, res) => {
   try {
-    const { wayIds } = req.body;
+    const { wayIds, formattedStartDate } = req.body;
 
     if (!wayIds || !Array.isArray(wayIds) || wayIds.length === 0) {
       return res.status(400).json({ error: "No wayIds provided" });
     }
 
-    const d = new Date();
-    const formattedDate = d.toLocaleString('sv-SE', { timeZone: 'Asia/Yangon' }).replace('T', ' ');
-
     const [affectedRows] = await way.update(
-      { status: 5 , updatedDate: formattedDate},      
+      { status: 5 , updatedDate: formattedStartDate},      
       {
         where: {
           wayId: {

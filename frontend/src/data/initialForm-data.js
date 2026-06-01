@@ -1,5 +1,5 @@
 export const initialWayFormData = {
-  outletId: 0, customerId: 0, itemPrice: 0, deliFee: 0, status: 1, itemQty: 0, wayType: 0, marketId: 0, marketName: "", pickupDeliCar: 0, senderDeliCar: 0, city: 0, townShipId: 0, wayDate: "", remark: "", complaint: "",
+  outletId: 0, customerId: 0, itemPrice: 0, deliFee: 0, status: 1, itemQty: 0, wayType: 0, marketId: 0, marketName: "", pickupDeliCar: 0, senderDeliCar: 0, city: 0, townShipId: 0, wayDate: "", remark: "", complaint: "", updatedDate: ""
 };
 
 export const resetOSWayFormData = { 

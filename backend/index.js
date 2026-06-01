@@ -15,6 +15,7 @@ import townShipRoutes from "./routes/townShipRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import routeRoutes from "./routes/routeRoutes.js";
+import wayHistoryRoutes from "./routes/wayHistoryRoutes.js";
 
 dotenv.config();
 
@@ -48,6 +49,7 @@ app.use("/api/townShip", townShipRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use('/api/route', routeRoutes);
+app.use("/api/wayHistory", wayHistoryRoutes);
 
 // Sync DB and start server
 (async () => {
